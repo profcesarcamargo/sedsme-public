@@ -46,12 +46,25 @@
     <div id="mensagens"></div>
   </div>
 
-  <!-- Carrega o login.js -->
+  <!-- ===============================
+       ORDEM CORRETA DOS SCRIPTS
+       =============================== -->
+
+  <!-- 1) Configuração vinda do BACKEND (Render) -->
   <script src="https://sedsme-backend.onrender.com/config.js"></script>
+
+  <!-- 2) Supabase v2 (CDN oficial) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 3) Inicializa o cliente Supabase -->
   <script src="JS/supabaseClient.js"></script>
+
+  <!-- 4) Lógica de login -->
   <script src="JS/login.js"></script>
 
+  <!-- ===============================
+       CONTROLE DO FORMULÁRIO
+       =============================== -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("formLogin");
@@ -76,7 +89,6 @@
       perfilEl.addEventListener("change", mostrarCampos);
       mostrarCampos();
 
-      // Submit do formulário (botão Entrar e tecla Enter)
       form.addEventListener("submit", (e) => {
         e.preventDefault();
 
@@ -85,11 +97,11 @@
             window.loginReal();
           } catch (err) {
             console.error(err);
-            setMsg("Erro ao executar login.js. Veja o Console (F12).", "erro");
+            setMsg("Erro ao executar login. Veja o Console (F12).", "erro");
           }
         } else {
-          console.warn("loginReal() não encontrada. Verifique se js/login.js está carregando.");
-          setMsg("Erro: login.js não carregou. Verifique o caminho: Public/js/login.js", "erro");
+          console.error("loginReal() não encontrada.");
+          setMsg("Erro: login.js não carregou corretamente.", "erro");
         }
       });
     });

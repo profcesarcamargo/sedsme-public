@@ -1,0 +1,3 @@
+// public/config.js
+window.SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJycmFjZHF4dGZnamZoeml5ZHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMzQ1MjAsImV4cCI6MjA3ODgxMDUyMH0.fU0cBClgZmwZoZhsWIxlHFQHaiceUBbyDTeDrxYN7m4";

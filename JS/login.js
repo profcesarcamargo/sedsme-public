@@ -1,6 +1,23 @@
 // public/js/login.js
 // Login híbrido: Professor via Supabase Auth; SME liberado apenas para e-mails autorizados.
 
+function waitForSupabaseClient(timeoutMs = 12000, intervalMs = 50) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const timer = setInterval(() => {
+      if (window.supabaseClient) {
+        clearInterval(timer);
+        resolve(window.supabaseClient);
+        return;
+      }
+      if (Date.now() - start > timeoutMs) {
+        clearInterval(timer);
+        reject(new Error("supabaseClient não inicializou a tempo"));
+      }
+    }, intervalMs);
+  });
+}
+
 window.loginReal = async function () {
   const perfil = document.getElementById("perfil")?.value; // professor | sme | ...
   const usuario = document.getElementById("usuario")?.value?.trim();
@@ -16,8 +33,12 @@ window.loginReal = async function () {
   if (!perfil) return setMsg("Selecione um perfil.", "erro");
   if (!usuario || !senha) return setMsg("Preencha usuário (e-mail) e senha.", "erro");
 
-  const supa = window.supabaseClient;
-  if (!supa) {
+  // ⏳ Espera o supabaseClient ficar pronto (evita corrida de scripts)
+  let supa;
+  try {
+    supa = await waitForSupabaseClient();
+  } catch (e) {
+    console.error(e);
     return setMsg(
       "Supabase não configurado. Verifique /config.js e o carregamento do supabaseClient.js",
       "erro"
