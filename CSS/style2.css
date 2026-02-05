@@ -1,0 +1,82 @@
+/* Fonte e base */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif; /* corrigido: era "Argial" */
+}
+
+/* Centralização perfeita da tela */
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fundo (fica atrás de tudo) */
+.background {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+
+  background-image: url("/img/Painel%20Institucional%202.jpg"); /* caminho absoluto + espaços */
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.65);
+}
+
+/* Caixa de login */
+.login-container {
+  width: 280px;
+  background-color: rgb(251, 253, 255);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+/* Logo */
+.logo {
+  width: 120px;
+  margin-bottom: 10px;
+}
+
+/* Inputs */
+input, select {
+  width: 90%;
+  padding: 10px;
+  margin-top: 12px;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+  font-size: 13.5px; /* corrigido: era "13,5px" */
+}
+
+/* Botão */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #1b4da1;
+  border: none;
+  color: white;
+  font-size: 17px;
+  border-radius: 5px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #05aa65;
+}
+
+/* Esconder campos */
+.hidden {
+  display: none;
+}
+
+/* Erros */
+.erro {
+  color: red;
+  margin-top: 10px;
+}

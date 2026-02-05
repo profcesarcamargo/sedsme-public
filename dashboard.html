@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Secretaria de Educação</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Ícones -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Estilos -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Inter", sans-serif; }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background: #f0f2f5;
+            overflow: hidden;
+        }
+
+        /* MENU LATERAL */
+        .sidebar {
+            width: 250px;
+            background: #1e293b;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #334155;
+        }
+
+        /* CONTEÚDO PRINCIPAL */
+        .main {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .topbar h1 {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        /* CARDS */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .card .number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        /* GRÁFICOS */
+        .charts {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MENU LATERAL -->
+    <aside class="sidebar">
+        <h2>SME</h2>
+
+        <div class="menu-item"><i data-lucide="home"></i> Início</div>
+        <div class="menu-item"><i data-lucide="users"></i> Estudantes</div>
+        <div class="menu-item"><i data-lucide="school"></i> Escolas</div>
+        <div class="menu-item"><i data-lucide="book-open"></i> Professores</div>
+        <div class="menu-item"><i data-lucide="clipboard-list"></i> Matrículas</div>
+        <div class="menu-item"><i data-lucide="settings"></i> Configurações</div>
+        <div class="menu-item" onclick="logout()"><i data-lucide="log-out"></i> Sair</div>
+    </aside>
+
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <h1>Dashboard Geral</h1>
+            <p>Bem-vindo(a), Secretaria Municipal de Educação</p>
+        </div>
+
+        <!-- Cards -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total de Estudantes</h3>
+                <p class="number">3.842</p>
+            </div>
+
+            <div class="card">
+                <h3>Total de Professores</h3>
+                <p class="number">221</p>
+            </div>
+
+            <div class="card">
+                <h3>Escolas Ativas</h3>
+                <p class="number">12</p>
+            </div>
+
+            <div class="card">
+                <h3>Matrículas Anuais</h3>
+                <p class="number">4.910</p>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts">
+            
+            <!-- Gráfico de Linhas -->
+            <div class="chart-container">
+                <h3>Matrículas nos últimos 6 anos</h3>
+                <canvas id="matriculasChart"></canvas>
+            </div>
+
+            <!-- Pizza -->
+            <div class="chart-container">
+                <h3>Distribuição por Etapa</h3>
+                <canvas id="etapaChart"></canvas>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // GRÁFICO DE MATRÍCULAS (LINHA)
+        const ctx1 = document.getElementById('matriculasChart');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+                datasets: [{
+                    label: 'Matrículas',
+                    data: [4300, 4120, 4500, 4800, 4910, 5000],
+                    borderWidth: 3
+                }]
+            }
+        });
+
+        // GRÁFICO DE PIZZA
+        const ctx2 = document.getElementById('etapaChart');
+        new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: ['Educação Infantil', 'Fundamental I', 'Fundamental II', 'EJA'],
+                datasets: [{
+                    data: [900, 1200, 1400, 300]
+                }]
+            }
+        });
+
+        // Função de logout
+        function logout() {
+            window.location.href = "index1.html";
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SME | SED Santa Branca</title>
+
+  <!-- CSS (o seu arquivo) -->
+  <link rel="stylesheet" href="CSS/sme.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand__logo">🏛️</div>
+        <div class="brand__txt">
+          <h1>SEDSME</h1>
+          <small>Painel SME</small>
+        </div>
+      </div>
+
+      <nav class="menu" aria-label="Menu">
+        <button type="button" class="menu__item menu-item active" data-view="dashboard" onclick="navegar('dashboard', event)">Dashboard</button>
+        <button type="button" class="menu__item menu-item" data-view="professores" onclick="navegar('professores', event)">Professores</button>
+        <button type="button" class="menu__item menu-item" data-view="turmas" onclick="navegar('turmas', event)">Turmas</button>
+        <button type="button" class="menu__item menu-item" data-view="usuarios" onclick="navegar('usuarios', event)">Usuários</button>
+        <button type="button" class="menu__item menu-item sair" id="btnLogout">Sair</button>
+      </nav>
+
+      <div class="sidebar__foot">
+        <div class="userbox">
+          <div class="userbox__name" id="smeUserName">SME</div>
+          <div class="userbox__meta" id="smeUserEmail"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <h2 id="pageTitle">Dashboard</h2>
+        <div class="topbar__right">
+          <span class="badge" id="sbStatus"></span>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section class="view" id="view-dashboard">
+        <div class="panel">
+          <div class="panel__head">
+            <h2>Visão geral</h2>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <div class="card__kpi" id="kpiProf">0</div>
+              <div class="card__lbl">Professores</div>
+            </div>
+            <div class="card">
+              <div class="card__kpi" id="kpiTurmas">0</div>
+              <div class="card__lbl">Turmas</div>
+            </div>
+            <div class="card">
+              <div class="card__kpi" id="kpiAtrib">0</div>
+              <div class="card__lbl">Atribuições</div>
+            </div>
+            <div class="card">
+              <div class="card__kpi" id="kpiEstudantes">0</div>
+              <div class="card__lbl">Estudantes</div>
+            </div>
+          </div>
+          <p class="muted" style="margin-top:14px;">
+            Dica: cadastre/atualize professores e atribua turmas em <strong>Professores</strong>. As turmas aparecem automaticamente no perfil do professor.
+          </p>
+        </div>
+      </section>
+
+      <!-- PROFESSORES -->
+      <section class="view hidden" id="view-professores">
+        <div class="panel">
+          <div class="panel__head">
+            <h2>Professores</h2>
+            <div class="panel__actions">
+              <button class="btn" data-open="modalCriarProfessor">+ Novo professor</button>
+              <button class="btn" data-open="modalAtribuirTurma">Atribuir turma</button>
+              <button class="btn btn--ghost" data-open="modalRemoverTurma">Remover turma</button>
+            </div>
+          </div>
+
+          <div id="sbProfMsg" class="muted" style="margin: 6px 0 10px;"></div>
+
+          <div class="tableWrap">
+            <table class="table" id="tblProfessores">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Matrícula</th>
+                  <th>Escola Sede</th>
+                  <th>Turmas</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody><!-- via JS --></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TURMAS -->
+      <section class="view hidden" id="view-turmas">
+        <div class="panel">
+          <div class="panel__head">
+            <h2>Turmas</h2>
+            <div class="panel__actions">
+              <button class="btn" data-open="modalCriarTurma">+ Nova turma</button>
+              <button class="btn btn--ghost" data-open="modalGerenciarEstudantes">Estudantes</button>
+            </div>
+          </div>
+          <div id="sbTurmasMsg" class="muted" style="margin: 6px 0 10px;"></div>
+          <div class="tableWrap">
+            <table class="table" id="tblTurmas">
+              <thead>
+                <tr>
+                  <th>Turma</th>
+                  <th>Escola</th>
+                  <th>Período</th>
+                  <th>ID</th>
+                  <th>Estudantes</th>
+                </tr>
+              </thead>
+              <tbody><!-- via JS --></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- USUÁRIOS -->
+      <section class="view hidden" id="view-usuarios">
+        <div class="panel">
+          <div class="panel__head">
+            <h2>Usuários</h2>
+            <div class="panel__actions">
+              <button class="btn" data-open="modalCriarUsuario">+ Novo usuário</button>
+            </div>
+          </div>
+          <p class="muted" style="margin: 6px 0 10px;">Aqui você controla perfis (SME / Professor / outros).</p>
+          <div id="sbUsuariosMsg" class="muted" style="margin: 6px 0 10px;"></div>
+          <div class="tableWrap">
+            <table class="table" id="tblUsuarios">
+              <thead>
+                <tr>
+                  <th>Tipo de usuário</th>
+                  <th>Nome</th>
+                  <th>ID</th>
+                </tr>
+              </thead>
+              <tbody><!-- via JS --></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================== MODAIS ===================== -->
+
+  <!-- Novo Professor -->
+  <dialog class="modal" id="modalCriarProfessor">
+    <form method="dialog" class="modal__card">
+      <div class="modal__head">
+        <h3>Novo professor</h3>
+        <button class="iconBtn" value="cancel" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="grid2">
+        <label style="grid-column:1/-1">
+          <span>ID do usuário (UUID do Auth)</span>
+          <input id="inpProfId" type="text" placeholder="Cole aqui o UUID do usuário criado no Supabase Auth" />
+        </label>
+
+        <label>
+          <span>Nome</span>
+          <input type="text" id="inpProfNome" placeholder="Nome completo" />
+        </label>
+        <label>
+          <span>Matrícula</span>
+          <input type="text" id="inpProfMatricula" placeholder="Ex.: 12345" />
+        </label>
+        <label style="grid-column:1/-1">
+          <span>Escola Sede</span>
+          <input type="text" id="inpProfEscola" placeholder="Ex.: EMEF Centro" />
+        </label>
+        <label style="grid-column:1/-1">
+          <span>Email (para login do professor)</span>
+          <input type="email" id="inpProfEmail" placeholder="professor@exemplo.com" />
+        </label>
+      </div>
+
+      <div class="muted" id="msgCriarProfessor" style="margin-top:10px;"></div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" value="cancel">Cancelar</button>
+        <button class="btn" id="btnSalvarProfessor" type="button">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Nova Turma -->
+  <dialog class="modal" id="modalCriarTurma">
+    <form method="dialog" class="modal__card">
+      <div class="modal__head">
+        <h3>Nova turma</h3>
+        <button class="iconBtn" value="cancel" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="grid2">
+        <label style="grid-column:1/-1">
+          <span>Nome da turma</span>
+          <input type="text" id="inpNomeTurma" placeholder="Ex.: 6º A - Matemática" />
+        </label>
+        <label>
+          <span>Escola</span>
+          <input type="text" id="inpTurmaEscola" placeholder="Ex.: EMEF Centro" />
+        </label>
+        <label>
+          <span>Período</span>
+          <select id="inpTurmaPeriodo">
+            <option value="">Selecione...</option>
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
+            <option value="Noite">Noite</option>
+            <option value="Integral">Integral</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="muted" id="msgCriarTurma" style="margin-top:10px;"></div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" value="cancel">Cancelar</button>
+        <button class="btn" id="btnCriarTurma" type="button">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Atribuir Turma -->
+  <dialog class="modal" id="modalAtribuirTurma">
+    <form method="dialog" class="modal__card">
+      <div class="modal__head">
+        <h3>Atribuir turma</h3>
+        <button class="iconBtn" value="cancel" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="grid2">
+        <label>
+          <span>Professor</span>
+          <select id="selProfessor"></select>
+        </label>
+        <label>
+          <span>Turma</span>
+          <select id="selTurma"></select>
+        </label>
+      </div>
+
+      <div class="muted" id="msgAtribuir" style="margin-top:10px;"></div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" value="cancel">Cancelar</button>
+        <button class="btn" id="btnSalvarAtribuicao" type="button">Atribuir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Remover Turma -->
+  <dialog class="modal" id="modalRemoverTurma">
+    <form method="dialog" class="modal__card">
+      <div class="modal__head">
+        <h3>Remover turma</h3>
+        <button class="iconBtn" value="cancel" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="grid2">
+        <label>
+          <span>Professor</span>
+          <select id="selProfessorRem"></select>
+        </label>
+        <label>
+          <span>Turma</span>
+          <select id="selTurmaRem"></select>
+        </label>
+      </div>
+
+      <div class="muted" id="msgRemover" style="margin-top:10px;"></div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" value="cancel">Cancelar</button>
+        <button class="btn" id="btnSalvarRemocao" type="button">Remover</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Novo Usuário -->
+  <dialog class="modal" id="modalCriarUsuario">
+    <form method="dialog" class="modal__card">
+      <div class="modal__head">
+        <h3>Novo usuário</h3>
+        <button class="iconBtn" value="cancel" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="grid2">
+        <label style="grid-column:1/-1">
+          <span>ID do usuário (UUID do Auth)</span>
+          <input id="inpUserId" type="text" placeholder="Cole aqui o UUID do usuário criado no Supabase Auth" />
+        </label>
+
+        <label style="grid-column:1/-1">
+          <span>Email</span>
+          <input type="email" id="inpUserEmail" placeholder="usuario@exemplo.com" />
+        </label>
+        <label>
+          <span>Role</span>
+          <select id="selUserRole">
+            <option value="professor">Professor</option>
+            <option value="sme">SME</option>
+            <option value="secretaria">Secretaria</option>
+            <option value="direcao">Direção</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="muted" id="msgCriarUsuario" style="margin-top:10px;"></div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" value="cancel">Cancelar</button>
+        <button class="btn" id="btnSalvarUsuario" type="button">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Gerenciar Estudantes da Turma -->
+  <div class="modal-overlay" id="modalGerenciarEstudantes" style="display:none;">
+    <div class="modal">
+      <div class="modal__head">
+        <h3>Gerenciar estudantes da turma</h3>
+        <button class="iconbtn" data-close="modalGerenciarEstudantes" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <div class="grid2">
+          <label style="grid-column:1/-1">
+            <span>Turma</span>
+            <select id="selTurmaEstudantes">
+              <option value="">Selecione...</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Nome do estudante</span>
+            <input type="text" id="inpEstudanteNome" placeholder="Nome completo" />
+          </label>
+          <label>
+            <span>RA (opcional)</span>
+            <input type="text" id="inpEstudanteRA" placeholder="RA" />
+          </label>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button class="btn" id="btnAddEstudanteTurma" type="button">Adicionar à turma</button>
+          <span id="msgEstudantes" style="align-self:center; opacity:.9;"></span>
+        </div>
+
+        <div style="margin-top:14px;">
+          <h4 style="margin:10px 0 8px;">Estudantes da turma</h4>
+          <div id="listEstudantesTurma" class="sb-list"></div>
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--ghost" data-close="modalGerenciarEstudantes" type="button">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase / scripts -->
+  <script src="/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="JS/supabaseClient.js"></script>
+  <script src="JS/sme.js"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painel do Estudante | SED Santa Branca</title>
+
+  <link rel="stylesheet" href="../css/estudante.css">
+
+  <!-- PROTEÇÃO DE ACESSO -->
+  <script src="../js/guard.js"></script>
+  <script>SEDSME.requirePerfil("estudante");</script>
+</head>
+<body>
+
+  <aside class="est-sidebar">
+    <div class="est-brand">
+      <div class="est-logo">SB</div>
+      <div class="est-title">
+        <strong>Estudante</strong>
+        <small>Sistema Escolar</small>
+      </div>
+    </div>
+
+    <nav class="est-menu">
+      <button class="est-item active" data-page="documentos">
+        <span class="est-ico">📄</span>
+        <span class="est-text">Solicitação de Documentos</span>
+      </button>
+
+      <button class="est-item" data-page="boletim">
+        <span class="est-ico">📘</span>
+        <span class="est-text">Boletim Escolar</span>
+      </button>
+
+      <button class="est-item" data-page="atividades">
+        <span class="est-ico">✅</span>
+        <span class="est-text">Atividades</span>
+      </button>
+
+      <div class="est-sep"></div>
+
+      <button class="est-item sair" id="btnSair">
+        <span class="est-ico">🚪</span>
+        <span class="est-text">Sair</span>
+      </button>
+    </nav>
+  </aside>
+
+  <header class="est-header">
+    <div class="est-header-left">
+      <h1 id="pageTitle">Solicitação de Documentos</h1>
+      <p class="est-sub">Bem-vindo(a)! Aqui você solicita documentos da escola.</p>
+    </div>
+    <div class="est-header-right">
+      <div class="est-user">
+        <div class="est-avatar">🎓</div>
+        <div class="est-username" id="userName">Estudante</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="est-main">
+    <section class="est-cards">
+      <article class="est-card">
+        <h3>Solicitações Pendentes</h3>
+        <p class="est-num">2</p>
+      </article>
+      <article class="est-card">
+        <h3>Boletins Disponíveis</h3>
+        <p class="est-num">1</p>
+      </article>
+      <article class="est-card">
+        <h3>Atividades Abertas</h3>
+        <p class="est-num">3</p>
+      </article>
+    </section>
+
+    <section class="est-content">
+      <div class="page page-active" id="documentos">
+        <div class="est-panel">
+          <h2>Solicitar Documento</h2>
+          <p>Funcionalidade em desenvolvimento.</p>
+        </div>
+      </div>
+
+      <div class="page" id="boletim">
+        <div class="est-panel">
+          <h2>Boletim Escolar</h2>
+          <p>Visualização de notas e frequência.</p>
+        </div>
+      </div>
+
+      <div class="page" id="atividades">
+        <div class="est-panel">
+          <h2>Atividades</h2>
+          <p>Atividades disponíveis para o estudante.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Dados da sessão
+    const session = SEDSME.getSession();
+    if (session?.usuario) {
+      document.getElementById("userName").textContent = session.usuario;
+    }
+
+    // Logout
+    document.getElementById("btnSair").addEventListener("click", () => {
+      if (confirm("Deseja sair do sistema?")) {
+        SEDSME.logout();
+      }
+    });
+
+    // Navegação simples
+    document.querySelectorAll(".est-item[data-page]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".est-item").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const page = btn.dataset.page;
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("page-active"));
+        document.getElementById(page).classList.add("page-active");
+
+        document.getElementById("pageTitle").textContent = btn.innerText;
+      });
+    });
+  </script>
+
+</body>
+</html>

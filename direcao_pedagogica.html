@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direção Pedagógica - Educação de Santa Branca</title>
+
+  <!-- ✅ padrão do seu projeto: tudo dentro de /css e /js -->
+  <link rel="stylesheet" href="/css/direcao_pedagogica.css">
+
+  <!-- pode manter CDN sem problemas -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+  <!-- ✅ Proteção do perfil (caminho absoluto funciona em qualquer página) -->
+  <script src="/js/guard.js"></script>
+  <script>SEDSME.requirePerfil("direcao_ped");</script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Menu Lateral -->
+    <div class="sidebar">
+      <div class="logo">
+        <h2><i class="fas fa-graduation-cap"></i> Santa Branca</h2>
+        <p>Direção Pedagógica</p>
+      </div>
+
+      <nav class="menu">
+        <a href="#" class="menu-item active" data-page="dashboard">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="menu-item" data-page="diario">
+          <i class="fas fa-book"></i>
+          <span>Diário de Classe</span>
+        </a>
+        <a href="#" class="menu-item" data-page="lista-piloto">
+          <i class="fas fa-list"></i>
+          <span>Lista Piloto</span>
+        </a>
+        <a href="#" class="menu-item" data-page="mural">
+          <i class="fas fa-bullhorn"></i>
+          <span>Mural de Avisos</span>
+        </a>
+        <a href="#" class="menu-item" data-page="controle-ha">
+          <i class="fas fa-clock"></i>
+          <span>Controle de H.A</span>
+        </a>
+        <a href="#" class="menu-item" data-page="planos-ensino">
+          <i class="fas fa-file-alt"></i>
+          <span>Planos de Ensino</span>
+        </a>
+
+        <!-- ✅ logout via SEDSME.logout() -->
+        <a href="#" class="menu-item logout" id="btnLogout">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sair</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-toggle" type="button">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            <span id="userLabel">Direção Pedagógica</span>
+            <div class="user-avatar">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Conteúdo das Páginas -->
+      <div class="content">
+        <div id="dashboard-page" class="page active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+              <div class="stat-info">
+                <h3>Professores Ativos</h3>
+                <span class="stat-number" id="total-teachers">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+              <div class="stat-info">
+                <h3>Planos Entregues</h3>
+                <span class="stat-number" id="submitted-plans">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+              <div class="stat-info">
+                <h3>Planos Aprovados</h3>
+                <span class="stat-number" id="approved-plans">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-clock"></i></div>
+              <div class="stat-info">
+                <h3>H.A Pendentes</h3>
+                <span class="stat-number" id="pending-ha">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pedagogy-sections">
+            <div class="section-card">
+              <h3><i class="fas fa-tasks"></i> Acompanhamento Pedagógico</h3>
+              <div class="section-content">
+                <div class="progress-item">
+                  <span>Planos em Análise</span>
+                  <span class="progress-badge" id="plans-under-review">0</span>
+                </div>
+                <div class="progress-item">
+                  <span>Diários com Pendências</span>
+                  <span class="progress-badge warning" id="diaries-with-issues">0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <h3><i class="fas fa-calendar-alt"></i> Próximas Ações</h3>
+              <div class="section-content">
+                <div id="next-actions-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="diario-page" class="page">
+          <h2>Diário de Classe - Acompanhamento Pedagógico</h2>
+        </div>
+
+        <div id="lista-piloto-page" class="page">
+          <h2>Lista Piloto - Controle Pedagógico</h2>
+        </div>
+
+        <div id="mural-page" class="page">
+          <h2>Mural de Avisos Pedagógicos</h2>
+        </div>
+
+        <div id="controle-ha-page" class="page">
+          <h2>Controle de Hora Atividade - Acompanhamento</h2>
+        </div>
+
+        <div id="planos-ensino-page" class="page">
+          <h2>Planos de Ensino - Análise Pedagógica</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ JS do perfil (coloque o arquivo dentro de /Public/js) -->
+  <script src="/js/direcao_pedagogica.js"></script>
+
+  <!-- ✅ logout padrão -->
+  <script>
+    document.getElementById("btnLogout").addEventListener("click", (e) => {
+      e.preventDefault();
+      if (confirm("Deseja sair do sistema?")) {
+        SEDSME.logout();
+      }
+    });
+  </script>
+</body>
+</html>

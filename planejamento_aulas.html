@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planejamento de Aulas | SED Santa Branca</title>
+    <link rel="stylesheet" href="../css/professor.css">
+    <style>
+        .plano-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #4CAF50;
+        }
+        .plano-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .plano-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-rascunho { background: #fff3cd; color: #856404; }
+        .status-planejado { background: #d1ecf1; color: #0c5460; }
+        .status-aplicado { background: #d4edda; color: #155724; }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        /* ESTILOS PARA MODAL DE PLANO DE AULA */
+        .modal-plano-aula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-plano-aula.active {
+            display: flex;
+        }
+
+        .modal-content-plano {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header-plano {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid #eee;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-header-plano h3 {
+            margin: 0;
+            font-size: 1.4em;
+        }
+
+        .close-plano {
+            font-size: 28px;
+            cursor: pointer;
+            color: white;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-plano:hover {
+            opacity: 0.8;
+        }
+
+        .modal-body-plano {
+            padding: 30px;
+        }
+
+        .modal-footer-plano {
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* Formulário do Plano de Aula */
+        .form-plano-aula {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group-plano {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group-plano label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group-plano input,
+        .form-group-plano select,
+        .form-group-plano textarea {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group-plano input:focus,
+        .form-group-plano select:focus,
+        .form-group-plano textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group-plano textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Botões específicos do plano de aula */
+        .btn-salvar-plano {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-salvar-plano:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-cancelar-plano {
+            background: #9e9e9e;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancelar-plano:hover {
+            background: #757575;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .modal-content-plano {
+                width: 95%;
+                margin: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-body-plano {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo-area">
+        <img src="../img/Santa Branca Logo.png" class="logo" alt="Logo Santa Branca">
+        <h2>Portal do Professor</h2>
+    </div>
+
+    <div class="user-info">
+        <div class="user-avatar" id="userAvatar">P</div>
+        <div class="user-details">
+            <strong id="userName">Carregando...</strong>
+            <span id="userProfile">Professor</span>
+            <span id="userSchool">EMEF Santa Branca</span>
+        </div>
+    </div>
+
+    <div class="menu">
+        <a href="professor.html" class="menu-item">
+            <div class="icon"><span>📘</span></div>
+            Diário de Classe
+        </a>
+
+        <a href="professor.html" class="menu-item">
+            <div class="icon"><span>⏱️</span></div>
+            Hora Atividade - H.A
+        </a>
+
+        <a href="planejamento_aulas.html" class="menu-item active">
+            <div class="icon"><span>📚</span></div>
+            Planejamento de Aulas
+        </a>
+
+        <a href="professor.html" class="menu-item">
+            <div class="icon"><span>📝</span></div>
+            Atividades & Avaliações
+        </a>
+
+        <div class="menu-item sair" onclick="sair()">
+            <div class="icon"><span>🚪</span></div>
+            Sair do Sistema
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <div class="header-left">
+            <span id="pageTitle">📚 Planejamento de Aulas - H.A</span>
+        </div>
+        <div class="header-right">
+            <span id="currentDate"></span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="header-content">
+            <h1>📚 Planejamento de Aulas - H.A</h1>
+            <button class="btn-primary" onclick="abrirModalPlano()" style="padding: 10px 20px;">
+                + Novo Plano de Aula
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card">
+            <h3>Filtrar Planos</h3>
+            <div style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+                <div>
+                    <label>Disciplina:</label>
+                    <select id="filtroDisciplina" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="">Todas</option>
+                        <option>Arte</option>
+                        <option>Matemática</option>
+                        <option>Português</option>
+                        <option>Ciências</option>
+                        <option>História</option>
+                        <option>Geografia</option>
+                        <option>Inglês</option>
+                        <option>Educação Física</option>
+                        <option>Religiosidade</option>
+                        <option>Polivalente</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label>Turma:</label>
+                    <select id="filtroTurma" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="">Todas</option>
+                        <option>1º A</option>
+                        <option>2º A</option>
+                        <option>3º A</option>
+                        <option>4º A</option>
+                        <option>5º A</option>
+                        <option>6º A</option>
+                        <option>7º A</option>
+                        <option>8º A</option>
+                        <option>9º A</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label>Status:</label>
+                    <select id="filtroStatus" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="">Todos</option>
+                        <option>Rascunho</option>
+                        <option>Planejado</option>
+                        <option>Aplicado</option>
+                    </select>
+                </div>
+                
+                <button class="btn-secondary" onclick="filtrarPlanos()">Aplicar Filtros</button>
+                <button class="btn" onclick="limparFiltros()" style="background: #e0e0e0;">Limpar</button>
+            </div>
+        </div>
+
+        <!-- Lista de Planos -->
+        <div class="card">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                <h3>Meus Planos de Aula</h3>
+                <span id="contadorPlanos" style="color: #666; font-size: 14px;">Carregando...</span>
+            </div>
+            
+            <!-- CONTAINER PARA PLANOS DINÂMICOS -->
+            <div id="planos-container">
+                <div class="plano-card">
+                    <div class="plano-header">
+                        <div>
+                            <h4>Introdução à Álgebra Linear</h4>
+                            <p><strong>Turma:</strong> 8º A - Matemática | <strong>Data:</strong> 15/03/2024</p>
+                        </div>
+                        <span class="status-badge status-planejado">Planejado</span>
+                    </div>
+                    <p><strong>Objetivos:</strong> Compreender os conceitos básicos de álgebra linear e suas aplicações.</p>
+                    <div class="plano-actions">
+                        <button class="btn-primary" onclick="visualizarPlano(1)">Visualizar</button>
+                        <button class="btn-secondary" onclick="editarPlano(1)">Editar</button>
+                        <button class="btn-danger" onclick="excluirPlano(1)">Excluir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Plano de Aula -->
+<div id="modalNovoPlano" class="modal-plano-aula">
+    <div class="modal-content-plano">
+        <div class="modal-header-plano">
+            <h3>📝 Novo Plano de Aula</h3>
+            <button class="close-plano" onclick="fecharModalPlano()">&times;</button>
+        </div>
+        
+        <div class="modal-body-plano">
+            <form id="formPlanoAula" class="form-plano-aula">
+                <div class="form-row">
+                    <div class="form-group-plano">
+                        <label for="planoTurma">Turma *</label>
+                        <select id="planoTurma" required>
+                            <option value="">Selecione a turma</option>
+                            <option value="1º A">1º A</option>
+                            <option value="2º A">2º A</option>
+                            <option value="3º A">3º A</option>
+                            <option value="4º A">4º A</option>
+                            <option value="5º A">5º A</option>
+                            <option value="6º A">6º A</option>
+                            <option value="7º A">7º A</option>
+                            <option value="8º A">8º A</option>
+                            <option value="9º A">9º A</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group-plano">
+                        <label for="planoDisciplina">Disciplina *</label>
+                        <select id="planoDisciplina" required>
+                            <option value="">Selecione a disciplina</option>
+                            <option value="Arte">Arte</option>
+                            <option value="Matemática">Matemática</option>
+                            <option value="Português">Português</option>
+                            <option value="Ciências">Ciências</option>
+                            <option value="História">História</option>
+                            <option value="Geografia">Geografia</option>
+                            <option value="Inglês">Inglês</option>
+                            <option value="Educação Física">Educação Física</option>
+                            <option value="Religiosidade">Religiosidade</option>
+                            <option value="Polivalente">Polivalente</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group-plano">
+                    <label for="planoTitulo">Título do Plano *</label>
+                    <input type="text" id="planoTitulo" placeholder="Ex: Introdução à Álgebra" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group-plano">
+                        <label for="planoData">Data da Aula *</label>
+                        <input type="date" id="planoData" required>
+                    </div>
+                    
+                    <div class="form-group-plano">
+                        <label for="planoDuracao">Duração (minutos)</label>
+                        <input type="number" id="planoDuracao" placeholder="50" min="1" value="50">
+                    </div>
+                </div>
+                
+                <div class="form-group-plano">
+                    <label for="planoObjetivos">Objetivos de Aprendizagem *</label>
+                    <textarea id="planoObjetivos" placeholder="O que os alunos devem aprender nesta aula..." required></textarea>
+                </div>
+                
+                <div class="form-group-plano">
+                    <label for="planoConteudo">Conteúdo da Aula</label>
+                    <textarea id="planoConteudo" placeholder="Conteúdo que será abordado..."></textarea>
+                </div>
+                
+                <div class="form-group-plano">
+                    <label for="planoMetodologia">Metodologia</label>
+                    <textarea id="planoMetodologia" placeholder="Como a aula será conduzida..."></textarea>
+                </div>
+                
+                <div class="form-group-plano">
+                    <label for="planoRecursos">Recursos Necessários</label>
+                    <textarea id="planoRecursos" placeholder="Materiais, equipamentos, etc..."></textarea>
+                </div>
+                
+                <div class="form-group-plano">
+                    <label for="planoAvaliacao">Avaliação</label>
+                    <textarea id="planoAvaliacao" placeholder="Como o aprendizado será avaliado..."></textarea>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer-plano">
+            <button class="btn-cancelar-plano" onclick="fecharModalPlano()">Cancelar</button>
+            <button class="btn-salvar-plano" onclick="salvarPlanoAula()">💾 Salvar Plano</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== VERIFICAÇÃO DE AUTENTICAÇÃO =====
+function verificarAutenticacao() {
+    const token = localStorage.getItem('sed_token');
+    const user = JSON.parse(localStorage.getItem('sed_user') || '{}');
+    
+    if (!token || user.perfil !== 'professor') {
+        window.location.href = '/';
+        return false;
+    }
+    return true;
+}
+
+// ===== INICIALIZAÇÃO =====
+document.addEventListener('DOMContentLoaded', function() {
+    if (!verificarAutenticacao()) return;
+    
+    // Carregar dados do usuário
+    carregarDadosUsuario();
+    
+    // Atualizar data
+    atualizarData();
+    
+    // Carregar planos existentes
+    carregarPlanos();
+});
+
+function carregarDadosUsuario() {
+    const user = JSON.parse(localStorage.getItem('sed_user') || '{}');
+    
+    document.getElementById('userName').textContent = user.nome || 'Professor';
+    document.getElementById('userSchool').textContent = user.escola || 'EMEF Santa Branca';
+    
+    // Gerar avatar com iniciais
+    const nome = user.nome || 'Professor';
+    const iniciais = nome.split(' ').map(n => n[0]).join('').toUpperCase();
+    document.getElementById('userAvatar').textContent = iniciais.substring(0, 2);
+}
+
+function atualizarData() {
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+// ===== GERENCIAMENTO DE PLANOS =====
+let planosSalvos = JSON.parse(localStorage.getItem('planos_aula') || '[]');
+
+function carregarPlanos() {
+    const container = document.getElementById('planos-container');
+    const contador = document.getElementById('contadorPlanos');
+    
+    if (planosSalvos.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <div style="font-size: 3em; margin-bottom: 10px;">📚</div>
+                <h4>Nenhum plano de aula criado</h4>
+                <p>Comece criando seu primeiro plano de aula!</p>
+            </div>
+        `;
+        contador.textContent = '0 planos';
+        return;
+    }
+    
+    container.innerHTML = planosSalvos.map((plano, index) => `
+        <div class="plano-card">
+            <div class="plano-header">
+                <div>
+                    <h4>${plano.titulo}</h4>
+                    <p><strong>Turma:</strong> ${plano.turma} - ${plano.disciplina} | <strong>Data:</strong> ${new Date(plano.data).toLocaleDateString('pt-BR')}</p>
+                </div>
+                <span class="status-badge status-${plano.status.toLowerCase()}">${plano.status}</span>
+            </div>
+            <p><strong>Objetivos:</strong> ${plano.objetivos.substring(0, 100)}${plano.objetivos.length > 100 ? '...' : ''}</p>
+            <div class="plano-actions">
+                <button class="btn-primary" onclick="visualizarPlano(${index})">Visualizar</button>
+                <button class="btn-secondary" onclick="editarPlano(${index})">Editar</button>
+                <button class="btn-danger" onclick="excluirPlano(${index})">Excluir</button>
+            </div>
+        </div>
+    `).join('');
+    
+    contador.textContent = `${planosSalvos.length} plano(s)`;
+}
+
+function filtrarPlanos() {
+    const disciplina = document.getElementById('filtroDisciplina').value;
+    const turma = document.getElementById('filtroTurma').value;
+    const status = document.getElementById('filtroStatus').value;
+    
+    const planosFiltrados = planosSalvos.filter(plano => {
+        return (!disciplina || plano.disciplina === disciplina) &&
+               (!turma || plano.turma === turma) &&
+               (!status || plano.status === status);
+    });
+    
+    // Atualizar display com planos filtrados
+    const container = document.getElementById('planos-container');
+    const contador = document.getElementById('contadorPlanos');
+    
+    if (planosFiltrados.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <div style="font-size: 3em; margin-bottom: 10px;">🔍</div>
+                <h4>Nenhum plano encontrado</h4>
+                <p>Tente ajustar os filtros da sua busca.</p>
+            </div>
+        `;
+    } else {
+        container.innerHTML = planosFiltrados.map((plano, index) => `
+            <div class="plano-card">
+                <div class="plano-header">
+                    <div>
+                        <h4>${plano.titulo}</h4>
+                        <p><strong>Turma:</strong> ${plano.turma} - ${plano.disciplina} | <strong>Data:</strong> ${new Date(plano.data).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <span class="status-badge status-${plano.status.toLowerCase()}">${plano.status}</span>
+                </div>
+                <p><strong>Objetivos:</strong> ${plano.objetivos.substring(0, 100)}${plano.objetivos.length > 100 ? '...' : ''}</p>
+                <div class="plano-actions">
+                    <button class="btn-primary" onclick="visualizarPlano(${planosSalvos.indexOf(plano)})">Visualizar</button>
+                    <button class="btn-secondary" onclick="editarPlano(${planosSalvos.indexOf(plano)})">Editar</button>
+                    <button class="btn-danger" onclick="excluirPlano(${planosSalvos.indexOf(plano)})">Excluir</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    contador.textContent = `${planosFiltrados.length} plano(s) encontrado(s)`;
+}
+
+function limparFiltros() {
+    document.getElementById('filtroDisciplina').value = '';
+    document.getElementById('filtroTurma').value = '';
+    document.getElementById('filtroStatus').value = '';
+    carregarPlanos();
+}
+
+// ===== MODAL E FORMULÁRIO =====
+function abrirModalPlano() {
+    document.getElementById('modalNovoPlano').classList.add('active');
+    document.getElementById('planoData').value = new Date().toISOString().split('T')[0];
+}
+
+function fecharModalPlano() {
+    document.getElementById('modalNovoPlano').classList.remove('active');
+    document.getElementById('formPlanoAula').reset();
+}
+
+function salvarPlanoAula() {
+    const form = document.getElementById('formPlanoAula');
+    
+    if (!form.checkValidity()) {
+        alert('Preencha todos os campos obrigatórios!');
+        return;
+    }
+    
+    const plano = {
+        id: Date.now(),
+        turma: document.getElementById('planoTurma').value,
+        disciplina: document.getElementById('planoDisciplina').value,
+        titulo: document.getElementById('planoTitulo').value,
+        data: document.getElementById('planoData').value,
+        duracao: document.getElementById('planoDuracao').value,
+        objetivos: document.getElementById('planoObjetivos').value,
+        conteudo: document.getElementById('planoConteudo').value,
+        metodologia: document.getElementById('planoMetodologia').value,
+        recursos: document.getElementById('planoRecursos').value,
+        avaliacao: document.getElementById('planoAvaliacao').value,
+        dataCriacao: new Date().toISOString(),
+        status: 'Rascunho'
+    };
+    
+    planosSalvos.unshift(plano);
+    localStorage.setItem('planos_aula', JSON.stringify(planosSalvos));
+    
+    alert('Plano de aula salvo com sucesso! ✅');
+    fecharModalPlano();
+    carregarPlanos();
+}
+
+function visualizarPlano(index) {
+    const plano = planosSalvos[index];
+    alert(`📚 ${plano.titulo}\n\n🏫 Turma: ${plano.turma}\n📖 Disciplina: ${plano.disciplina}\n📅 Data: ${new Date(plano.data).toLocaleDateString('pt-BR')}\n⏱️ Duração: ${plano.duracao}min\n\n🎯 Objetivos:\n${plano.objetivos}\n\n📝 Conteúdo:\n${plano.conteudo || 'Não informado'}\n\n📋 Metodologia:\n${plano.metodologia || 'Não informado'}\n\n🛠️ Recursos:\n${plano.recursos || 'Não informado'}\n\n📊 Avaliação:\n${plano.avaliacao || 'Não informado'}`);
+}
+
+function editarPlano(index) {
+    alert(`Editando plano ${index}...\n\nEm uma versão completa, isso abriria o formulário com os dados preenchidos.`);
+}
+
+function excluirPlano(index) {
+    if (confirm('Tem certeza que deseja excluir este plano de aula?')) {
+        planosSalvos.splice(index, 1);
+        localStorage.setItem('planos_aula', JSON.stringify(planosSalvos));
+        carregarPlanos();
+        alert('Plano excluído com sucesso!');
+    }
+}
+
+// ===== LOGOUT =====
+function sair() {
+    if (confirm('Deseja realmente sair do sistema?')) {
+        localStorage.removeItem('sed_token');
+        localStorage.removeItem('sed_user');
+        window.location.href = '/';
+    }
+}
+
+// Fechar modal ao clicar fora
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('modalNovoPlano');
+    if (event.target === modal) {
+        fecharModalPlano();
+    }
+});
+</script>
+</body>
+</html>

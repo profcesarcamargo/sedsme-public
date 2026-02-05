@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login - SED Santa Branca</title>
+
+  <link rel="stylesheet" href="CSS/style2.css">
+
+  <style>
+    .hidden { display: none; }
+    .erro { color: red; margin-top: 10px; }
+    .success { color: green; margin-top: 10px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="background"></div>
+
+  <div class="login-container">
+    <img src="img/Santa Branca Logo.png" class="logo" alt="Logo">
+
+    <h2>Entrar</h2>
+
+    <form id="formLogin">
+      <label for="perfil">Selecione o Perfil:</label>
+      <select id="perfil" name="perfil" required>
+        <option value="">-- Selecione --</option>
+        <option value="sme">SME – Secretaria de Educação</option>
+        <option value="secretaria">Secretaria Escolar</option>
+        <option value="direcao_adm">Direção Administrativa</option>
+        <option value="direcao_ped">Direção Pedagógica</option>
+        <option value="professor">Professor</option>
+        <option value="estudante">Estudante</option>
+      </select>
+
+      <div id="camposLogin" class="hidden">
+        <input type="text" id="usuario" name="usuario" placeholder="Usuário ou e-mail" required>
+        <input type="password" id="senha" name="senha" placeholder="Senha" required>
+
+        <button type="submit" id="btnEntrar">Entrar</button>
+      </div>
+    </form>
+
+    <div id="mensagens"></div>
+  </div>
+
+  <!-- Carrega o login.js -->
+  <script src="/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="JS/supabaseClient.js"></script>
+  <script src="JS/login.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("formLogin");
+      const perfilEl = document.getElementById("perfil");
+      const camposLogin = document.getElementById("camposLogin");
+      const mensagens = document.getElementById("mensagens");
+
+      function setMsg(texto, tipo = "") {
+        mensagens.innerHTML = `<div class="${tipo}">${texto}</div>`;
+      }
+
+      function mostrarCampos() {
+        if (perfilEl.value !== "") {
+          camposLogin.style.display = "block";
+          camposLogin.classList.remove("hidden");
+        } else {
+          camposLogin.style.display = "none";
+          camposLogin.classList.add("hidden");
+        }
+      }
+
+      perfilEl.addEventListener("change", mostrarCampos);
+      mostrarCampos();
+
+      // Submit do formulário (botão Entrar e tecla Enter)
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        if (typeof window.loginReal === "function") {
+          try {
+            window.loginReal();
+          } catch (err) {
+            console.error(err);
+            setMsg("Erro ao executar login.js. Veja o Console (F12).", "erro");
+          }
+        } else {
+          console.warn("loginReal() não encontrada. Verifique se js/login.js está carregando.");
+          setMsg("Erro: login.js não carregou. Verifique o caminho: Public/js/login.js", "erro");
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

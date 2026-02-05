@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direção Administrativa | SED Santa Branca</title>
+
+  <!-- mesmo nível do HTML -->
+  <link rel="stylesheet" href="CSS/direcao_admin.css">
+
+  <!-- Proteção do perfil (padrão do projeto) -->
+  <script src="JS/guard.js"></script>
+  <script>SEDSME.requirePerfil("direcao_adm");</script>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo-area">
+    <img src="img/Santa Branca Logo.png" class="logo" alt="Santa Branca">
+    <h2>Direção Administrativa</h2>
+  </div>
+
+  <div class="user-info">
+    <div class="user-avatar">👨‍💼</div>
+    <div class="user-details">
+      <strong id="userName">Carregando...</strong>
+      <span id="userProfile">Direção Administrativa</span>
+      <span id="userSchool">EMEF Escola de Santa Branca</span>
+    </div>
+  </div>
+
+  <div class="menu">
+    <div class="menu-item active" onclick="navegar('dashboard', this)">
+      <div class="icon"><span>📊</span></div>
+      Página Principal
+    </div>
+
+    <div class="menu-item" onclick="navegar('diario', this)">
+      <div class="icon"><span>📘</span></div>
+      Diário de Classe
+    </div>
+
+    <div class="menu-item" onclick="navegar('lista-piloto', this)">
+      <div class="icon"><span>📄</span></div>
+      Lista Piloto
+    </div>
+
+    <div class="menu-item" onclick="navegar('controle-ausencias', this)">
+      <div class="icon"><span>👥</span></div>
+      Controle de Ausências
+    </div>
+
+    <div class="menu-item" onclick="navegar('estoque', this)">
+      <div class="icon"><span>📦</span></div>
+      Controle de Estoque
+    </div>
+
+    <div class="menu-item" onclick="navegar('documentos', this)">
+      <div class="icon"><span>📝</span></div>
+      Emissão de Documentos
+    </div>
+
+    <div class="menu-item" onclick="navegar('professores', this)">
+      <div class="icon"><span>👨‍🏫</span></div>
+      Gerenciar Professores
+    </div>
+
+    <div class="menu-item sair" onclick="sair()">
+      <div class="icon red"><span>🚪</span></div>
+      Sair do Sistema
+    </div>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <div class="header-left">
+      <span id="pageTitle">Página Principal da Direção Administrativa</span>
+    </div>
+    <div class="header-right">
+      <span id="currentDate"></span>
+      <span id="schoolInfo">EMEF Santa Branca</span>
+    </div>
+  </div>
+
+  <div class="content" id="contentArea">
+    <!-- DASHBOARD -->
+    <div id="dashboard-content" class="page-content active">
+      <div class="welcome-card">
+        <h2>Bem-vindo(a), <span id="welcomeName">Diretor(a)</span>!</h2>
+        <p>Use o menu ao lado para acessar as ferramentas administrativas da Unidade Escolar.</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🎓</div>
+          <div class="stat-info">
+            <h3 id="totalAlunos">0</h3>
+            <p>Estudantes Matriculados</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👨‍🏫</div>
+          <div class="stat-info">
+            <h3 id="totalProfessores">0</h3>
+            <p>Professores</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <h3 id="totalTurmas">0</h3>
+            <p>Turmas Ativas</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3 id="frequenciaMedia">0%</h3>
+            <p>Frequência Média</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <h3>Ações Rápidas</h3>
+        <div class="actions-grid">
+          <div class="action-card" onclick="navegar('diario', document.querySelector('.menu-item[onclick*=&quot;diario&quot;]'))">
+            <div class="action-icon">📘</div>
+            <span>Diário de Classe</span>
+          </div>
+          <div class="action-card" onclick="navegar('lista-piloto', document.querySelector('.menu-item[onclick*=&quot;lista-piloto&quot;]'))">
+            <div class="action-icon">📄</div>
+            <span>Lista Piloto</span>
+          </div>
+          <div class="action-card" onclick="navegar('controle-ausencias', document.querySelector('.menu-item[onclick*=&quot;controle-ausencias&quot;]'))">
+            <div class="action-icon">👥</div>
+            <span>Controle de Ausências</span>
+          </div>
+          <div class="action-card" onclick="navegar('documentos', document.querySelector('.menu-item[onclick*=&quot;documentos&quot;]'))">
+            <div class="action-icon">📝</div>
+            <span>Emitir Documentos</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="recent-alerts">
+        <h3>Alertas e Pendências</h3>
+        <div id="alertsList" class="alerts-container">
+          <div class="alert-item info">
+            <span>✅ Sistema funcionando normalmente</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTRAS PÁGINAS -->
+    <div id="diario-content" class="page-content">
+      <h2>Diário de Classe</h2>
+      <p>Controle e acompanhamento dos Diários de Classe.</p>
+    </div>
+
+    <div id="lista-piloto-content" class="page-content">
+      <h2>Lista Piloto</h2>
+      <p>Gerenciamento de Listas Piloto da escola.</p>
+    </div>
+
+    <div id="controle-ausencias-content" class="page-content">
+      <h2>Controle de Ausências</h2>
+      <p>Controle de faltas de professores e funcionários.</p>
+    </div>
+
+    <div id="estoque-content" class="page-content">
+      <h2>Controle de Estoque</h2>
+      <p>Gestão de materiais e estoque da escola.</p>
+    </div>
+
+    <div id="documentos-content" class="page-content">
+      <h2>Emissão de Documentos</h2>
+      <p>Emissão de documentos escolares.</p>
+    </div>
+
+    <div id="professores-content" class="page-content">
+      <h2>Gerenciar Professores</h2>
+      <p>Gestão do corpo docente da escola.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====== sessão (padrão atual do projeto) ======
+  const session = (window.SEDSME && typeof SEDSME.getSession === "function")
+    ? SEDSME.getSession()
+    : null;
+
+  const nomeExibicao = session?.usuario ? session.usuario : "Diretor(a)";
+  const escolaExibicao = session?.escola ? session.escola : "EMEF Escola de Santa Branca";
+
+  document.getElementById("userName").textContent = nomeExibicao;
+  document.getElementById("welcomeName").textContent = nomeExibicao;
+  document.getElementById("userSchool").textContent = escolaExibicao;
+  document.getElementById("schoolInfo").textContent = escolaExibicao;
+
+  // ====== data ======
+  document.getElementById("currentDate").textContent = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+  // ====== estatísticas (mock/local) ======
+  function carregarEstatisticasMock() {
+    document.getElementById("totalAlunos").textContent = "0";
+    document.getElementById("totalProfessores").textContent = "0";
+    document.getElementById("totalTurmas").textContent = "0";
+    document.getElementById("frequenciaMedia").textContent = "0%";
+  }
+
+  // ====== navegação ======
+  function navegar(pagina, elMenu) {
+    document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+    if (elMenu) elMenu.classList.add("active");
+
+    document.querySelectorAll(".page-content").forEach(content => content.classList.remove("active"));
+    const alvo = document.getElementById(pagina + "-content");
+    if (alvo) alvo.classList.add("active");
+
+    if (elMenu) {
+      document.getElementById("pageTitle").textContent = elMenu.textContent.trim();
+    }
+  }
+
+  // ====== logout ======
+  function sair() {
+    if (confirm("Deseja realmente sair do sistema?")) {
+      SEDSME.logout();
+    }
+  }
+
+  carregarEstatisticasMock();
+</script>
+
+</body>
+</html>
