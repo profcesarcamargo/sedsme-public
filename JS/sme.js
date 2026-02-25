@@ -1,4 +1,3 @@
-
 /* Public/JS/sme.js
  * SME (Supabase) — Painel de gestão
  * - Professores: cadastra/atualiza em educsb + define tipo_de_usuario em usuarios (quando aplicável)
@@ -90,16 +89,32 @@
   }
 
   /* =======================
-     Supabase
+     Supabase (AJUSTADO)
   ======================= */
-  function supa() {
-    return window.supabaseClient || window.supabase;
+  async function supa() {
+    // ✅ sempre preferir o client inicializado
+    if (window.supabaseClient) return window.supabaseClient;
+
+    // ✅ aguarda inicialização (novo supabaseClient.js)
+    if (window.__supabaseReady) {
+      try {
+        const client = await window.__supabaseReady;
+        return client || window.supabaseClient || null;
+      } catch (e) {
+        console.error("[SEDSME] Falha ao inicializar Supabase:", e);
+        return null;
+      }
+    }
+
+    // fallback (não recomendado): retorna window.supabase (biblioteca) só se for client mesmo
+    return window.supabaseClient || null;
   }
 
   async function getSession() {
-    const client = supa();
-    if (!client) return null;
-    const { data } = await client.auth.getSession();
+    const client = await supa();
+    if (!client?.auth?.getSession) return null;
+    const { data, error } = await client.auth.getSession();
+    if (error) throw error;
     return data?.session || null;
   }
 
@@ -123,12 +138,12 @@
   }
 
   async function requireSME() {
-    const client = supa();
+    const client = await supa();
     if (!client) throw new Error("Supabase não configurado (supabaseClient).");
 
     const session = await getSession();
     if (!session) {
-      window.location.href = "/index1.html";
+      window.location.href = "./index1.html";
       return null;
     }
 
@@ -144,15 +159,12 @@
     const roleKey = findKey(data, ["tipo_de_usuario", "tipo_de_usuário", "role", "rola"]);
     const roleVal = norm(roleKey ? data?.[roleKey] : "");
 
-    // Fallback: se a coluna de role mudou, a linha não apareceu por RLS,
-    // ou ainda não foi preenchida, permita acesso quando o email estiver
-    // em uma allowlist (definida no login.js como SME_EMAILS).
+    // Fallback allowlist
     function emailIsAllowed(email) {
       const e = norm(email);
       if (!e) return false;
       const list = Array.isArray(window.SME_EMAILS) ? window.SME_EMAILS : null;
       if (list && list.some((it) => norm(it) === e)) return true;
-      // compatibilidade: permite configurar via localStorage (lista separada por vírgula)
       try {
         const raw = localStorage.getItem("SME_EMAILS") || localStorage.getItem("sedsme_sme_emails");
         if (raw) {
@@ -167,10 +179,9 @@
       const emailOk = emailIsAllowed(session.user.email || "");
       if (!emailOk) {
         alert("Acesso restrito ao perfil SME.");
-        window.location.href = "/index1.html";
+        window.location.href = "./index1.html";
         return null;
       }
-      // Se entrou por allowlist, mostramos aviso no status (sem bloquear).
       setText("sbStatus", "SME (allowlist)");
     }
 
@@ -191,7 +202,6 @@
     qsa(".menu__item, .menu-item").forEach((i) => i.classList.remove("active"));
     if (ev?.currentTarget) ev.currentTarget.classList.add("active");
 
-    // título da página
     const map = { dashboard: "Dashboard", professores: "Professores", turmas: "Turmas", usuarios: "Usuários" };
     setText("pageTitle", map[pagina] || "Dashboard");
   };
@@ -216,16 +226,15 @@
     atribuicoes: [],
     usuarios: [],
     estudantes: [],
-    // colunas reais detectadas
     usuariosCols: { role: null, nome: null },
-    turmaEstudantesCols: { estudanteRef: null }, // estudante_id OU estudante_nome (uuid)
+    turmaEstudantesCols: { estudanteRef: null },
   };
 
   /* =======================
      Loaders (com SELECT *)
   ======================= */
   async function loadProfessores() {
-    const client = supa();
+    const client = await supa();
     const { data, error } = await client.from("educsb").select("*").order("nome", { ascending: true });
     if (error) throw new Error("Erro ao carregar professores (educsb): " + error.message);
 
@@ -239,7 +248,7 @@
   }
 
   async function loadTurmas() {
-    const client = supa();
+    const client = await supa();
     const { data, error } = await client.from("turmas").select("*").order("nome", { ascending: true });
     if (error) throw new Error("Erro ao carregar turmas (turmas): " + error.message);
 
@@ -252,7 +261,7 @@
   }
 
   async function loadAtribuicoes() {
-    const client = supa();
+    const client = await supa();
     const { data, error } = await client
       .from("professor_turmas")
       .select("professor_id,turma_id,criado_em")
@@ -263,7 +272,7 @@
   }
 
   async function loadUsuarios() {
-    const client = supa();
+    const client = await supa();
     const { data, error } = await client.from("usuarios").select("*").order("id", { ascending: true });
     if (error) throw new Error("Erro ao carregar usuários (usuarios): " + error.message);
 
@@ -284,11 +293,9 @@
   }
 
   async function loadEstudantes() {
-    const client = supa();
-    // esta tabela foi criada por você. Se não existir ainda, não quebra.
+    const client = await supa();
     const { data, error } = await client.from("estudantes").select("*").order("criado_em", { ascending: false });
     if (error) {
-      // Se ainda não existir, apenas zera.
       if (String(error.message || "").toLowerCase().includes("relation") || String(error.message || "").includes("does not exist")) {
         STATE.estudantes = [];
         return;
@@ -304,7 +311,7 @@
   }
 
   async function detectTurmaEstudantesColumns() {
-    const client = supa();
+    const client = await supa();
     const { data, error } = await client.from("turma_estudantes").select("*").limit(1);
     if (error) {
       STATE.turmaEstudantesCols.estudanteRef = null;
@@ -312,11 +319,9 @@
     }
     const sample = (data && data[0]) || null;
     if (!sample) {
-      // padrão: estudante_id
       STATE.turmaEstudantesCols.estudanteRef = "estudante_id";
       return;
     }
-    // coluna que referencia estudantes (uuid)
     const key = findKey(sample, ["estudante_id", "estudante_nome", "estudante_uuid"]);
     STATE.turmaEstudantesCols.estudanteRef = key || "estudante_id";
   }
@@ -391,8 +396,7 @@
      Render (Turmas)
   ======================= */
   async function countEstudantesDaTurma(turmaId) {
-    const client = supa();
-    // se tabela não existir ainda, volta 0
+    const client = await supa();
     try {
       const { count, error } = await client
         .from("turma_estudantes")
@@ -416,7 +420,6 @@
       return;
     }
 
-    // render com contagem (leve, mas ok no tamanho atual)
     for (const t of STATE.turmas) {
       const qtd = await countEstudantesDaTurma(t.id);
       const tr = document.createElement("tr");
@@ -439,7 +442,7 @@
   }
 
   /* =======================
-     Render (Usuários) — somente exibir: tipo, nome, id
+     Render (Usuários)
   ======================= */
   function renderTabelaUsuarios() {
     const tbody = qs("#tblUsuarios tbody");
@@ -471,18 +474,15 @@
   async function refreshAllUI() {
     refreshKPIs();
 
-    // Professores
     renderTabelaProfessores();
     renderSelectProfessores("selProfessor");
     renderSelectProfessores("selProfessorRem");
     renderSelectTurmas("selTurma");
     renderSelectTurmas("selTurmaRem");
 
-    // Turmas
     await renderTabelaTurmas();
     renderSelectTurmas("selTurmaEstudantes");
 
-    // Usuários
     renderTabelaUsuarios();
   }
 
@@ -490,7 +490,7 @@
      CRUD: Professores
   ======================= */
   async function salvarProfessor() {
-    const client = supa();
+    const client = await supa();
     showMsg("msgCriarProfessor", "", true);
 
     const id = getVal("inpProfId");
@@ -502,7 +502,6 @@
     if (!id) return showMsg("msgCriarProfessor", "Informe o ID (UUID) do usuário do professor (Auth).", false);
     if (!nome) return showMsg("msgCriarProfessor", "Informe o nome.", false);
 
-    // 1) educsb: usa somente colunas existentes (detecta pela 1ª linha, se houver)
     showMsg("msgCriarProfessor", "Salvando...", true);
 
     const { data: sample, error: sampleErr } = await client.from("educsb").select("*").limit(1);
@@ -517,7 +516,6 @@
     const { error: upErr } = await client.from("educsb").upsert(payload, { onConflict: "id" });
     if (upErr) return showMsg("msgCriarProfessor", "Não foi possível salvar professor (educsb): " + upErr.message, false);
 
-    // 2) usuarios: definir tipo/nome (sem depender de colunas específicas)
     try {
       const { data: uRow } = await client.from("usuarios").select("*").eq("id", id).maybeSingle();
 
@@ -528,17 +526,13 @@
       uPayload[roleKey] = "professor";
       uPayload[nomeKey] = nome;
 
-      // email pode existir ou não
       if (uRow && Object.prototype.hasOwnProperty.call(uRow, "email")) uPayload.email = email || uRow.email || null;
 
       await client.from("usuarios").upsert(uPayload, { onConflict: "id" });
-    } catch {
-      // se não conseguir, não bloqueia o cadastro do professor
-    }
+    } catch {}
 
     showMsg("msgCriarProfessor", "Professor salvo com sucesso.", true);
 
-    // limpa campos (mantém e-mail opcional)
     setVal("", "inpProfId", "inpProfNome", "inpProfMatricula", "inpProfEscola", "inpProfEmail");
     closeDialog("modalCriarProfessor");
 
@@ -552,7 +546,7 @@
      CRUD: Turmas
   ======================= */
   async function criarTurma() {
-    const client = supa();
+    const client = await supa();
     showMsg("msgCriarTurma", "", true);
 
     const nome = getVal("inpNomeTurma");
@@ -565,7 +559,6 @@
 
     showMsg("msgCriarTurma", "Salvando...", true);
 
-    // tenta inserir com colunas; se falhar, tenta só com nome (não deve acontecer, mas garante)
     let error = null;
     let res = await client.from("turmas").insert({ nome, escola, periodo });
     error = res.error;
@@ -597,7 +590,7 @@
   }
 
   async function salvarEdicaoTurma() {
-    const client = supa();
+    const client = await supa();
     const id = getVal("inpEditTurmaId");
     const nome = getVal("inpEditTurmaNome");
     const escola = getVal("inpEditTurmaEscola");
@@ -620,13 +613,12 @@
   }
 
   async function excluirTurma(turmaId) {
-    const client = supa();
+    const client = await supa();
     const t = STATE.turmas.find((x) => String(x.id) === String(turmaId));
     if (!t) return;
 
     if (!confirm(`Excluir a turma "${t.nome}"?\n\nIsso também removerá atribuições e vínculos de estudantes desta turma.`)) return;
 
-    // apaga vínculos antes (se existir)
     try { await client.from("professor_turmas").delete().eq("turma_id", turmaId); } catch {}
     try { await client.from("turma_estudantes").delete().eq("turma_id", turmaId); } catch {}
 
@@ -642,7 +634,7 @@
      CRUD: Atribuições
   ======================= */
   async function atribuirTurma() {
-    const client = supa();
+    const client = await supa();
     const professorId = getVal("selProfessor");
     const turmaId = getVal("selTurma");
 
@@ -664,7 +656,7 @@
   }
 
   async function removerTurma() {
-    const client = supa();
+    const client = await supa();
     const professorId = getVal("selProfessorRem");
     const turmaId = getVal("selTurmaRem");
 
@@ -684,7 +676,7 @@
      Estudantes por turma
   ======================= */
   async function carregarEstudantesDaTurma(turmaId) {
-    const client = supa();
+    const client = await supa();
     const refCol = STATE.turmaEstudantesCols.estudanteRef || "estudante_id";
 
     const { data, error } = await client
@@ -700,7 +692,6 @@
       .filter(Boolean)
       .map(String);
 
-    // busca nomes na tabela estudantes
     let alunos = [];
     if (ids.length) {
       const { data: studs, error: e2 } = await client.from("estudantes").select("*").in("id", ids);
@@ -747,7 +738,6 @@
   }
 
   async function abrirGerenciarEstudantes(turmaId) {
-    // seleciona turma no select e carrega lista
     setVal(turmaId, "selTurmaEstudantes");
     setText("msgEstudantes", "");
     setVal("", "inpEstudanteNome", "inpEstudanteRA");
@@ -774,7 +764,7 @@
   }
 
   async function addEstudanteNaTurma() {
-    const client = supa();
+    const client = await supa();
     const turmaId = getVal("selTurmaEstudantes");
     const nome = getVal("inpEstudanteNome");
     const ra = getVal("inpEstudanteRA");
@@ -784,7 +774,6 @@
 
     setText("msgEstudantes", "Salvando...");
 
-    // 1) cria estudante (sempre texto em estudantes.estudante_nome)
     const { data: ins, error: e1 } = await client
       .from("estudantes")
       .insert({ estudante_nome: nome, ra: ra || null })
@@ -796,11 +785,9 @@
     const estudanteId = ins?.id;
     if (!estudanteId) return setText("msgEstudantes", "Não foi possível obter o ID do estudante.");
 
-    // 2) vincula na turma_estudantes (coluna pode ter nomes diferentes)
     const refCol = STATE.turmaEstudantesCols.estudanteRef || "estudante_id";
     const payload = { turma_id: turmaId };
     payload[refCol] = estudanteId;
-    // se existir estudante_ra, salva também
     payload.estudante_ra = ra || null;
 
     const { error: e2 } = await client.from("turma_estudantes").insert(payload);
@@ -815,7 +802,7 @@
   }
 
   async function removerEstudanteDaTurma(turmaId, estudanteId) {
-    const client = supa();
+    const client = await supa();
     const refCol = STATE.turmaEstudantesCols.estudanteRef || "estudante_id";
 
     const { error } = await client
@@ -834,7 +821,7 @@
      Usuários (CRUD simples)
   ======================= */
   async function salvarUsuario() {
-    const client = supa();
+    const client = await supa();
     showMsg("msgCriarUsuario", "", true);
 
     const id = getVal("inpUserId");
@@ -844,14 +831,12 @@
     if (!id) return showMsg("msgCriarUsuario", "Informe o ID (UUID do Auth).", false);
     if (!role) return showMsg("msgCriarUsuario", "Informe o tipo de usuário.", false);
 
-    // tenta descobrir colunas reais
     const roleKey = STATE.usuariosCols.role || "tipo_de_usuario";
     const nomeKey = STATE.usuariosCols.nome || "nome_usuario";
 
     const payload = { id };
     payload[roleKey] = role;
     payload[nomeKey] = (email || "").split("@")[0] || role;
-    // email pode não existir no schema; tenta inserir, se falhar remove e tenta de novo
     payload.email = email || null;
 
     let { error } = await client.from("usuarios").upsert(payload, { onConflict: "id" });
@@ -875,7 +860,6 @@
      Hooks (modais e ações)
   ======================= */
   function hookDialogs() {
-    // abrir dialog por data-open
     document.addEventListener("click", (ev) => {
       const btn = ev.target.closest("[data-open]");
       if (!btn) return;
@@ -885,7 +869,6 @@
       openDialog(id);
     });
 
-    // overlay close por data-close (modalGerenciarEstudantes)
     document.addEventListener("click", (ev) => {
       const btn = ev.target.closest("[data-close]");
       if (!btn) return;
@@ -895,15 +878,12 @@
       closeOverlay(id);
     });
 
-    // fecha overlay clicando fora
     const overlay = document.getElementById("modalGerenciarEstudantes");
     if (overlay) {
       overlay.addEventListener("click", (ev) => {
         if (ev.target === overlay) closeOverlay("modalGerenciarEstudantes");
       });
     }
-
-    // fecha dialogs quando clicar no X (value="cancel") já funciona via <form method="dialog">
   }
 
   function hookBotoes() {
@@ -924,7 +904,6 @@
   }
 
   function hookTabelaAcoes() {
-    // ações em tabelas
     document.addEventListener("click", (ev) => {
       const btn = ev.target.closest("button[data-action]");
       if (!btn) return;
@@ -977,11 +956,12 @@
   ======================= */
   async function sair() {
     try {
-      await supa()?.auth?.signOut?.();
+      const client = await supa();
+      await client?.auth?.signOut?.();
     } catch {}
     try { window.SEDSME?.logout?.(); } catch {}
     try { localStorage.removeItem("sedsme_session"); } catch {}
-    window.location.href = "/index1.html";
+    window.location.href = "./index1.html";
   }
 
   function hookLogout() {
@@ -1004,8 +984,9 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
-      if (!supa()) {
-        alert("Supabase não configurado no SME. Verifique se sme.html carrega /config.js + supabaseClient.js.");
+      const client = await supa();
+      if (!client) {
+        alert("Supabase não configurado no SME. Verifique se sme.html carrega config.js + supabase-js + supabaseClient.js.");
         return;
       }
 
