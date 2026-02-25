@@ -1,14 +1,16 @@
 // Public/JS/supabaseClient.js
-// Inicializa o cliente Supabase aguardando config.js (Render pode demorar)
+// Inicializa o cliente Supabase aguardando config.js
+// Compatível com GitHub Pages e Render
 
 (function () {
 
-  // 🔹 Aguarda as variáveis do backend ficarem disponíveis
+  // 🔹 Aguarda config.js definir as variáveis globais
   function waitForConfig(timeoutMs = 15000, intervalMs = 50) {
     return new Promise((resolve) => {
       const start = Date.now();
 
       const timer = setInterval(() => {
+
         const url = window.__SUPABASE_URL__;
         const anon = window.__SUPABASE_ANON_KEY__;
 
@@ -31,12 +33,13 @@
     });
   }
 
-  // 🔹 Inicializa quando página carregar
-  document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ PROMISE GLOBAL
+  // outros scripts devem aguardar window.__supabaseReady
+  window.__supabaseReady = (async () => {
 
     const { url, anon, timedOut } = await waitForConfig();
 
-    // 1️⃣ Verifica se config carregou
+    // 1️⃣ Verifica config
     if (!url || !anon) {
 
       console.error("[SEDSME] Supabase não configurado.");
@@ -45,19 +48,17 @@
       console.log("[SEDSME] ANON:", window.__SUPABASE_ANON_KEY__);
       console.trace();
 
-      alert("Erro: Supabase não configurado. Verifique o backend.");
-      return;
+      throw new Error("Supabase não configurado. config.js não carregou.");
     }
 
-    // 2️⃣ Verifica biblioteca Supabase
+    // 2️⃣ Verifica biblioteca supabase-js
     if (!window.supabase || typeof window.supabase.createClient !== "function") {
 
       console.error("[SEDSME] Biblioteca supabase-js não carregada.");
-      alert("Erro: Biblioteca Supabase não carregada.");
-      return;
+      throw new Error("Biblioteca Supabase não carregada.");
     }
 
-    // 3️⃣ Cria cliente Supabase
+    // 3️⃣ Cria cliente
     window.supabaseClient = window.supabase.createClient(url, anon, {
       auth: {
         persistSession: true,
@@ -68,7 +69,8 @@
 
     console.log("[SEDSME] Supabase inicializado com sucesso.");
 
-  });
+    return window.supabaseClient;
+
+  })();
 
 })();
-
